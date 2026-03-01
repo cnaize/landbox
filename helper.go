@@ -6,7 +6,7 @@ import (
 	"os/exec"
 )
 
-// NOTE: compiled from
+// NOTE: build from official Linux kernel samples using musl-gcc
 // https://github.com/torvalds/linux/tree/v6.19/samples/landlock
 //
 //go:embed bin/sandboxer
