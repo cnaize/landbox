@@ -71,19 +71,19 @@ func (s *Sandbox) Close() error {
 }
 
 func (s *Sandbox) init() error {
-	var err error
+	var res error
 	s.once.Do(func() {
 		// get sandbox file
 		sandboxer, err := getSandboxer()
 		if err != nil {
-			err = fmt.Errorf("get sandboxer: %w", err)
+			res = fmt.Errorf("get sandboxer: %w", err)
 			return
 		}
 
 		// load sandbox file
 		_, file, err := memit.Command(bytes.NewReader(sandboxer))
 		if err != nil {
-			err = fmt.Errorf("memit command: %w", err)
+			res = fmt.Errorf("memit command: %w", err)
 			return
 		}
 
@@ -91,10 +91,10 @@ func (s *Sandbox) init() error {
 	})
 
 	if s.sandbox == nil {
-		err = fmt.Errorf("load sandbox")
+		res = fmt.Errorf("load sandbox")
 	}
 
-	return err
+	return res
 }
 
 func (s *Sandbox) prepare(cmd *exec.Cmd) {
