@@ -29,6 +29,12 @@ func (o Options) Scope() string {
 	return strings.Join(scope, ":")
 }
 
+type Paths []string
+
+func (p Paths) String() string {
+	return strings.Join(p, ":")
+}
+
 type Ports []uint16
 
 func (p Ports) String() string {

@@ -1,15 +1,17 @@
 package landbox
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestReadWriteCommand(t *testing.T) {
+func TestReadWriteCommands(t *testing.T) {
 	var (
 		testDirPath  = "testdata"
 		testFilePath = filepath.Join(testDirPath, "write.txt")
@@ -18,25 +20,25 @@ func TestReadWriteCommand(t *testing.T) {
 	tests := []struct {
 		name    string
 		pass    bool
-		roPaths []string
-		rwPaths []string
+		roPaths Paths
+		rwPaths Paths
 	}{
 		{
 			name:    "success both paths",
 			pass:    true,
-			roPaths: []string{"/usr"},
-			rwPaths: []string{"testdata"},
+			roPaths: Paths{"/usr"},
+			rwPaths: Paths{"testdata"},
 		},
 		{
 			name:    "empty ro paths",
 			pass:    false,
 			roPaths: nil,
-			rwPaths: []string{"testdata"},
+			rwPaths: Paths{"testdata"},
 		},
 		{
 			name:    "empty rw paths",
 			pass:    false,
-			roPaths: []string{"/usr"},
+			roPaths: Paths{"/usr"},
 			rwPaths: nil,
 		},
 	}
@@ -54,20 +56,27 @@ func TestReadWriteCommand(t *testing.T) {
 			)
 			defer sandbox.Close()
 
+			var wg sync.WaitGroup
 			// read with sandbox
-			data, err := sandbox.Command("ls", testDirPath).CombinedOutput()
-			if tt.pass {
-				assert.NoError(t, err, string(data))
-			} else {
-				assert.Error(t, err, string(data))
-			}
-
-			// read without sandbox
-			_, err = exec.Command("ls", testDirPath).CombinedOutput()
-			assert.NoError(t, err)
-
+			wg.Go(func() {
+				data, err := sandbox.Command("ls", testDirPath).CombinedOutput()
+				if tt.pass {
+					assert.NoError(t, err, string(data))
+				} else {
+					assert.Error(t, err, string(data))
+				}
+			})
+			// read with sandbox (CommandContext)
+			wg.Go(func() {
+				data, err := sandbox.CommandContext(context.Background(), "ls", testDirPath).CombinedOutput()
+				if tt.pass {
+					assert.NoError(t, err, string(data))
+				} else {
+					assert.Error(t, err, string(data))
+				}
+			})
 			// write with sandbox
-			func() {
+			wg.Go(func() {
 				defer os.Remove(testFilePath)
 
 				data, err := sandbox.Command("touch", testFilePath).CombinedOutput()
@@ -76,15 +85,29 @@ func TestReadWriteCommand(t *testing.T) {
 				} else {
 					assert.Error(t, err, string(data))
 				}
-			}()
-
-			// write without sandbox
-			func() {
+			})
+			// write with sandbox (CommandContext)
+			wg.Go(func() {
 				defer os.Remove(testFilePath)
 
-				_, err := exec.Command("touch", testFilePath).CombinedOutput()
-				assert.NoError(t, err)
-			}()
+				data, err := sandbox.CommandContext(context.Background(), "touch", testFilePath).CombinedOutput()
+				if tt.pass {
+					assert.NoError(t, err, string(data))
+				} else {
+					assert.Error(t, err, string(data))
+				}
+			})
+			// wait till the end
+			wg.Wait()
+
+			// read without sandbox
+			_, err := exec.Command("ls", testDirPath).CombinedOutput()
+			assert.NoError(t, err)
+
+			// write without sandbox
+			defer os.Remove(testFilePath)
+			_, err = exec.Command("touch", testFilePath).CombinedOutput()
+			assert.NoError(t, err)
 		})
 	}
 }

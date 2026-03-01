@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"strings"
+	"sync"
 
 	"github.com/liamg/memit"
 )
@@ -20,13 +20,15 @@ const (
 )
 
 type Sandbox struct {
-	roPaths []string
-	rwPaths []string
-	sandbox *os.File
+	roPaths Paths
+	rwPaths Paths
 	options *Options
+
+	once    sync.Once
+	sandbox *os.File
 }
 
-func NewSandbox(roPaths, rwPaths []string, options *Options) *Sandbox {
+func NewSandbox(roPaths, rwPaths Paths, options *Options) *Sandbox {
 	return &Sandbox{
 		roPaths: roPaths,
 		rwPaths: rwPaths,
@@ -69,31 +71,32 @@ func (s *Sandbox) Close() error {
 }
 
 func (s *Sandbox) init() error {
-	if s.sandbox != nil {
-		return nil
-	}
+	var err error
+	s.once.Do(func() {
+		// get binary file
+		sandboxer, err := getSandboxer()
+		if err != nil {
+			err = fmt.Errorf("get sandboxer: %w", err)
+			return
+		}
 
-	// get binary file
-	sandboxer, err := getSandboxer()
-	if err != nil {
-		return fmt.Errorf("get sandboxer: %w", err)
-	}
+		// put file in memory
+		_, file, err := memit.Command(bytes.NewReader(sandboxer))
+		if err != nil {
+			err = fmt.Errorf("memit command: %w", err)
+			return
+		}
 
-	// put file in memory
-	_, file, err := memit.Command(bytes.NewReader(sandboxer))
-	if err != nil {
-		return fmt.Errorf("memit command: %w", err)
-	}
+		s.sandbox = file
+	})
 
-	s.sandbox = file
-
-	return nil
+	return err
 }
 
 func (s *Sandbox) prepare(cmd *exec.Cmd) {
 	// required
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", roPathsEnvKey, strings.Join(s.roPaths, ":")))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", rwPathsEnvKey, strings.Join(s.rwPaths, ":")))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", roPathsEnvKey, s.roPaths))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", rwPathsEnvKey, s.rwPaths))
 
 	// additional
 	if s.options != nil {

@@ -7,7 +7,7 @@ import "github.com/cnaize/landbox"
 
 func main() {
 	// allow only: ro="/usr", rw="/tmp"
-	sandbox := landbox.NewSandbox([]string{"/usr"}, []string{"/tmp"}, nil)
+	sandbox := landbox.NewSandbox(landbox.Paths{"/usr"}, landbox.Paths{"/tmp"}, nil)
 	defer sandbox.Close()
 
 	// deny everything else
@@ -19,9 +19,10 @@ func main() {
 }
 ```
 
-# Requirements:
- - Linux kernel 5.13+ (for Landlock LSM support)
-
-# TODO:
+# Features:
+ - [x] Thread safe
  - [x] Linux amd64 support
  - [ ] Linux arm64 support
+
+# Requirements:
+ - Linux kernel 5.13+ (for Landlock LSM support)
