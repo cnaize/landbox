@@ -90,7 +90,7 @@ func (s *Sandbox) init() error {
 		s.sandbox = file
 	})
 
-	if s.sandbox == nil {
+	if s.sandbox == nil && res == nil {
 		res = fmt.Errorf("load sandbox")
 	}
 
