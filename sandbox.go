@@ -39,7 +39,7 @@ func NewSandbox(roPaths, rwPaths Paths, options *Options) *Sandbox {
 func (s *Sandbox) Command(name string, arg ...string) *exec.Cmd {
 	// lazy init
 	if err := s.init(); err != nil {
-		return newCmdError(err)
+		return newCmdErrorf("init failed: %w", err)
 	}
 
 	// prepare command
@@ -52,7 +52,7 @@ func (s *Sandbox) Command(name string, arg ...string) *exec.Cmd {
 func (s *Sandbox) CommandContext(ctx context.Context, name string, arg ...string) *exec.Cmd {
 	// lazy init
 	if err := s.init(); err != nil {
-		return newCmdError(err)
+		return newCmdErrorf("init failed: %w", err)
 	}
 
 	// prepare command
@@ -73,14 +73,14 @@ func (s *Sandbox) Close() error {
 func (s *Sandbox) init() error {
 	var err error
 	s.once.Do(func() {
-		// get binary file
+		// get sandbox file
 		sandboxer, err := getSandboxer()
 		if err != nil {
 			err = fmt.Errorf("get sandboxer: %w", err)
 			return
 		}
 
-		// put file in memory
+		// load sandbox file
 		_, file, err := memit.Command(bytes.NewReader(sandboxer))
 		if err != nil {
 			err = fmt.Errorf("memit command: %w", err)
@@ -89,6 +89,10 @@ func (s *Sandbox) init() error {
 
 		s.sandbox = file
 	})
+
+	if s.sandbox == nil {
+		err = fmt.Errorf("load sandbox")
+	}
 
 	return err
 }
