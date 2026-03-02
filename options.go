@@ -10,23 +10,7 @@ type Options struct {
 	TCPConnect  Ports
 	DenySockets bool
 	DenySignals bool
-}
-
-func (o Options) Scope() string {
-	const (
-		socketsKey = "a"
-		signalsKey = "s"
-	)
-
-	var scope []string
-	if o.DenySockets {
-		scope = append(scope, socketsKey)
-	}
-	if o.DenySignals {
-		scope = append(scope, signalsKey)
-	}
-
-	return strings.Join(scope, ":")
+	EnableDebug bool
 }
 
 type Paths []string
@@ -44,4 +28,21 @@ func (p Ports) String() string {
 	}
 
 	return strings.Join(ports, ":")
+}
+
+func (o Options) Scope() string {
+	const (
+		socketsKey = "a"
+		signalsKey = "s"
+	)
+
+	var scope []string
+	if o.DenySockets {
+		scope = append(scope, socketsKey)
+	}
+	if o.DenySignals {
+		scope = append(scope, signalsKey)
+	}
+
+	return strings.Join(scope, ":")
 }

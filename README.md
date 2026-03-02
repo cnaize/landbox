@@ -10,7 +10,7 @@ func main() {
 	sandbox := landbox.NewSandbox(landbox.Paths{"/usr"}, landbox.Paths{"/tmp"}, nil)
 	defer sandbox.Close()
 
-	// deny everything else
+	// deny any other directory
 	output, _ := sandbox.Command("ls", "/home").CombinedOutput()
 
 	println(string(output))

@@ -52,6 +52,7 @@ func TestReadWriteCommands(t *testing.T) {
 					TCPConnect:  Ports{456, 789},
 					DenySockets: true,
 					DenySignals: true,
+					EnableDebug: true,
 				},
 			)
 			defer sandbox.Close()

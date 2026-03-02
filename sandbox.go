@@ -17,6 +17,7 @@ const (
 	tcpListenKey   = "LL_TCP_BIND"
 	tcpConnectKey  = "LL_TCP_CONNECT"
 	deniedScopeKey = "LL_SCOPED"
+	enableDebugKey = "LL_FORCE_LOG"
 )
 
 type Sandbox struct {
@@ -39,7 +40,7 @@ func NewSandbox(roPaths, rwPaths Paths, options *Options) *Sandbox {
 func (s *Sandbox) Command(name string, arg ...string) *exec.Cmd {
 	// lazy init
 	if err := s.init(); err != nil {
-		return newCmdErrorf("init failed: %w", err)
+		return newCmdErrorf("%w: %w", ErrInitFailed, err)
 	}
 
 	// prepare command
@@ -52,7 +53,7 @@ func (s *Sandbox) Command(name string, arg ...string) *exec.Cmd {
 func (s *Sandbox) CommandContext(ctx context.Context, name string, arg ...string) *exec.Cmd {
 	// lazy init
 	if err := s.init(); err != nil {
-		return newCmdErrorf("init failed: %w", err)
+		return newCmdErrorf("%w: %w", ErrInitFailed, err)
 	}
 
 	// prepare command
@@ -112,6 +113,9 @@ func (s *Sandbox) prepare(cmd *exec.Cmd) {
 		}
 		if len(s.options.Scope()) > 0 {
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", deniedScopeKey, s.options.Scope()))
+		}
+		if s.options.EnableDebug {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", enableDebugKey, "1"))
 		}
 	}
 }

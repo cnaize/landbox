@@ -2,11 +2,14 @@ package landbox
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"os/exec"
 )
 
-// NOTE: build from official Linux kernel samples using musl-gcc
+var ErrInitFailed = errors.New("init failed")
+
+// NOTE: built from official Linux kernel samples using musl-gcc
 // https://github.com/torvalds/linux/tree/v6.19/samples/landlock
 //
 //go:embed bin/sandboxer
