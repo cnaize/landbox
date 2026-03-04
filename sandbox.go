@@ -105,10 +105,10 @@ func (s *Sandbox) prepare(cmd *exec.Cmd) {
 
 	// additional
 	if s.options != nil {
-		if len(s.options.TCPListen) > 0 {
+		if s.options.TCPListen != nil {
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", tcpListenKey, s.options.TCPListen))
 		}
-		if len(s.options.TCPConnect) > 0 {
+		if s.options.TCPConnect != nil {
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", tcpConnectKey, s.options.TCPConnect))
 		}
 		if len(s.options.Scope()) > 0 {

@@ -48,8 +48,8 @@ func TestReadWriteCommands(t *testing.T) {
 			// create sandbox
 			sandbox := NewSandbox(tt.roPaths, tt.rwPaths,
 				&Options{
-					TCPListen:   Ports{123},
-					TCPConnect:  Ports{456, 789},
+					TCPListen:   Ports{},
+					TCPConnect:  Ports{80, 443},
 					DenySockets: true,
 					DenySignals: true,
 					EnableDebug: true,

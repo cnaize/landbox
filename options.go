@@ -6,8 +6,8 @@ import (
 )
 
 type Options struct {
-	TCPListen   Ports
-	TCPConnect  Ports
+	TCPListen   Ports // nil: allow all, empty: deny all
+	TCPConnect  Ports // nil: allow all, empty: deny all
 	DenySockets bool
 	DenySignals bool
 	EnableDebug bool
