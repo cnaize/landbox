@@ -6,11 +6,11 @@ import (
 )
 
 type Options struct {
-	TCPListen   Ports // nil: allow all, empty: deny all
-	TCPConnect  Ports // nil: allow all, empty: deny all
-	DenySockets bool
-	DenySignals bool
-	EnableDebug bool
+	TCPListen   Ports `json:"tcp_listen" yaml:"tcp_listen"`   // nil: allow all, empty: deny all
+	TCPConnect  Ports `json:"tcp_connect" yaml:"tcp_connect"` // nil: allow all, empty: deny all
+	DenySockets bool  `json:"deny_sockets" yaml:"deny_sockets"`
+	DenySignals bool  `json:"deny_signals" yaml:"deny_signals"`
+	EnableDebug bool  `json:"-" yaml:"-"`
 }
 
 type Paths []string
